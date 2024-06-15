@@ -409,7 +409,7 @@ const handle_keydown = (e) => {
 document.addEventListener('keydown', handle_keydown)
 
 let t = 0 // Parameter that goes from 0 to 1
-const ballSpeed = 0.004 // Speed of the animation, adjust as necessary
+const ballSpeed = 0.002 // Speed of the animation, adjust as necessary
 const spinSpeed = 0.08 // Speed of the spin, adjust as necessary
 let totalRotationX = 0 // Total rotation around the x-axis
 
@@ -437,6 +437,16 @@ function animate() {
     // When the ball reaches the end of the curve
     let score = calculateFairPlayScore()
     alert('Game Over! Your Fair Play Score is: ' + score.toFixed(2))
+    // Reset all cards
+    cards.forEach((card) => {
+      card.object3D.visible = true // Make the card visible again
+      card.hit = false // Reset the hit status
+    })
+
+    // Reset score counters
+    numRedCards = 0
+    numYellowCards = 0
+
     t = 0 // Optionally reset or stop the animation
   }
 
