@@ -38,7 +38,7 @@ const postRadius = 0.5
 const crossbarWidth = 50
 const postHeight = crossbarWidth / 3
 const ballDiameter = postHeight / 8
-const ballRadius = ballDiameter / 2
+const ballRadius = ballDiameter / 4
 
 // Here we load the cubemap and pitch images, you may change it
 
@@ -55,6 +55,10 @@ scene.background = texture
 
 // TODO: Texture Loading
 // We usually do the texture loading before we start everything else, as it might take processing time
+// Load the texture
+const textureLoader = new THREE.TextureLoader();
+const ballTexture = textureLoader.load('src/textures/soccer_ball.jpg');
+
 
 // TODO: Add Lighting
 // Light sources
@@ -64,6 +68,7 @@ scene.add(ambientLight)
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
 directionalLight.matrix.makeTranslation(0, 1, 1)
 scene.add(directionalLight)
+
 // TODO: Goal
 // You should copy-paste the goal from the previous exercise here
 // Goal
@@ -74,13 +79,13 @@ const frontLeftPost = new THREE.Mesh(
   postMaterial
 )
 translateAndRotate(
-  frontLeftPost,
-  -crossbarWidth / 2,
-  postHeight / 2,
-  0,
-  0,
-  0,
-  0
+	frontLeftPost,
+	-crossbarWidth / 2,
+	postHeight / 2,
+	0,
+	0,
+	0,
+	0
 )
 
 scene.add(frontLeftPost)
@@ -90,13 +95,13 @@ const frontRightPost = new THREE.Mesh(
   postMaterial
 )
 translateAndRotate(
-  frontRightPost,
-  crossbarWidth / 2,
-  postHeight / 2,
-  0,
-  0,
-  0,
-  0
+	frontRightPost,
+	crossbarWidth / 2,
+	postHeight / 2,
+	0,
+	0,
+	0,
+	0
 )
 
 scene.add(frontRightPost)
@@ -241,12 +246,11 @@ scene.add(rightSideNet)
 
 // TODO: Ball
 // You should add the ball with the soccer.jpg texture here
-
 // Ball
 const ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32)
-const ballMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 })
+const ballMaterial = new THREE.MeshPhongMaterial({ map: ballTexture })
 const ball = new THREE.Mesh(ballGeometry, ballMaterial)
-ball.matrix.makeTranslation(0, ballRadius, 1.5)
+ball.matrix.makeTranslation(0, ballRadius, 100)
 ball.matrixAutoUpdate = false
 
 scene.add(ball)
