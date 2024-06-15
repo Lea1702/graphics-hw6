@@ -307,6 +307,66 @@ scene.add(lwCurveObject)
 // Set the camera following the ball here
 
 // TODO: Add collectible cards with textures
+class Card {
+  constructor(curve, t, object3D, color) {
+    this.curve = curve
+    this.t = t
+    this.object3D = object3D
+    this.hit = false
+    this.color = color
+  }
+}
+let numRedCards = 0
+let numYellowCards = 0
+function createCard(curve, t, color) {
+  const cardGeometry = new THREE.BoxGeometry(1, 1.5, 0.1)
+  const cardMaterial = new THREE.MeshBasicMaterial({
+    color: color === 'red' ? 0xff0000 : 0xffff00,
+  })
+  const cardMesh = new THREE.Mesh(cardGeometry, cardMaterial)
+
+  const position = curve.getPoint(t)
+  cardMesh.position.set(position.x, position.y, position.z)
+  scene.add(cardMesh)
+
+  const card = new Card(curve, t, cardMesh, color)
+  cards.push(card)
+  return card
+}
+
+function checkCardCollisions() {
+  cards.forEach((card) => {
+    if (
+      !card.hit &&
+      card.curve === curves[currentCurveIndex] &&
+      Math.abs(t - card.t) < 0.05
+    ) {
+      card.object3D.visible = false
+      card.hit = true
+
+      if (card.color === 'red') {
+        numRedCards++
+      } else if (card.color === 'yellow') {
+        numYellowCards++
+      }
+
+      console.log('Card collected at t value: ' + card.t)
+    }
+  })
+}
+
+function calculateFairPlayScore() {
+  return 100 * Math.pow(2, -(numYellowCards + 10 * numRedCards) / 10)
+}
+
+let cards = []
+
+// Example of adding cards to each curve
+cards.push(createCard(curves[0], 0.25, 'red'))
+cards.push(createCard(curves[0], 0.75, 'red'))
+cards.push(createCard(curves[1], 0.5, 'yellow'))
+cards.push(createCard(curves[2], 0.33, 'yellow'))
+cards.push(createCard(curves[2], 0.66, 'red'))
 
 // TODO: Add keyboard event
 // We wrote some of the function for you
@@ -370,31 +430,37 @@ function animate() {
 
     // Combine translation and rotation
     ball.matrix.multiplyMatrices(translationMatrix, rotationMatrix)
-
-    // ball.matrix.copy(translationMatrix); // Apply the new translation matrix to the ball
     t += ballSpeed
     totalRotationX += spinSpeed // Incremental rotation around the z-axis
   } else {
-    t = 0 // Reset t to loop the animation or handle as needed
+    // When the ball reaches the end of the curve
+    // let score = calculateFairPlayScore()
+    // alert('Game Over! Your Fair Play Score is: ' + score.toFixed(2))
+    t = 0 // Optionally reset or stop the animation
   }
-  
-	// Animation for the camera
-	// Update camera position based on the ball's position
-    let ballPosition = new THREE.Vector3().setFromMatrixPosition(ball.matrix);
-	let cameraPosition = new THREE.Vector3().setFromMatrixPosition(camera.matrix);
-    
-    // Define a fixed y-offset and z-offset for the camera
-	const cameraYPosition = 25;
-    const zOffset = 60; // Camera stays behind the ball by 10 units
 
-    // Construct a new matrix for the camera's position
-    let cameraPositionMatrix = new THREE.Matrix4().makeTranslation(cameraPosition.x, cameraYPosition, ballPosition.z + zOffset);
-    camera.matrix.copy(cameraPositionMatrix); // Apply the new matrix to the camera
-    camera.matrixAutoUpdate = false; // Disable auto updates to use manual matrix handling
+  // Animation for the camera
+  // Update camera position based on the ball's position
+  let ballPosition = new THREE.Vector3().setFromMatrixPosition(ball.matrix)
+  let cameraPosition = new THREE.Vector3().setFromMatrixPosition(camera.matrix)
 
-    camera.lookAt(ballPosition); // Ensure camera looks at the ball
+  // Define a fixed y-offset and z-offset for the camera
+  const cameraYPosition = 25
+  const zOffset = 60 // Camera stays behind the ball by 10 units
+
+  // Construct a new matrix for the camera's position
+  let cameraPositionMatrix = new THREE.Matrix4().makeTranslation(
+    cameraPosition.x,
+    cameraYPosition,
+    ballPosition.z + zOffset
+  )
+  camera.matrix.copy(cameraPositionMatrix) // Apply the new matrix to the camera
+  camera.matrixAutoUpdate = false // Disable auto updates to use manual matrix handling
+
+  camera.lookAt(ballPosition) // Ensure camera looks at the ball
 
   // TODO: Test for card-ball collision
+  checkCardCollisions()
 
   renderer.render(scene, camera)
 }
