@@ -58,6 +58,8 @@ scene.background = texture
 // Load the texture
 const textureLoader = new THREE.TextureLoader()
 const ballTexture = textureLoader.load('src/textures/soccer_ball.jpg')
+const redCardTexture = textureLoader.load('src/textures/red_card.jpg')
+const yellowCardTexture = textureLoader.load('src/textures/yellow_card.jpg')
 
 // TODO: Add Lighting
 // Light sources
@@ -321,7 +323,7 @@ let numYellowCards = 0
 function createCard(curve, t, color) {
   const cardGeometry = new THREE.BoxGeometry(1, 1.5, 0.1)
   const cardMaterial = new THREE.MeshBasicMaterial({
-    color: color === 'red' ? 0xff0000 : 0xffff00,
+    map: color === 'red' ? redCardTexture : yellowCardTexture,
   })
   const cardMesh = new THREE.Mesh(cardGeometry, cardMaterial)
 
@@ -349,8 +351,6 @@ function checkCardCollisions() {
       } else if (card.color === 'yellow') {
         numYellowCards++
       }
-
-      console.log('Card collected at t value: ' + card.t)
     }
   })
 }
@@ -363,8 +363,9 @@ let cards = []
 
 // Example of adding cards to each curve
 cards.push(createCard(curves[0], 0.25, 'red'))
-cards.push(createCard(curves[0], 0.75, 'red'))
-cards.push(createCard(curves[1], 0.5, 'yellow'))
+cards.push(createCard(curves[0], 0.75, 'yellow'))
+cards.push(createCard(curves[1], 0.5, 'red'))
+cards.push(createCard(curves[1], 0.9, 'yellow'))
 cards.push(createCard(curves[2], 0.33, 'yellow'))
 cards.push(createCard(curves[2], 0.66, 'red'))
 
@@ -434,8 +435,8 @@ function animate() {
     totalRotationX += spinSpeed // Incremental rotation around the z-axis
   } else {
     // When the ball reaches the end of the curve
-    // let score = calculateFairPlayScore()
-    // alert('Game Over! Your Fair Play Score is: ' + score.toFixed(2))
+    let score = calculateFairPlayScore()
+    alert('Game Over! Your Fair Play Score is: ' + score.toFixed(2))
     t = 0 // Optionally reset or stop the animation
   }
 
