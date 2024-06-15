@@ -224,6 +224,8 @@ scene.add(rightBackSupportTopTorus)
 const netMaterial = new THREE.MeshPhongMaterial({
   color: '#e9e9e9',
   side: THREE.DoubleSide,
+  transparent: true, // Enable transparency
+  opacity: 0.5,
 })
 
 const backNetGeometry = new THREE.PlaneGeometry(
@@ -283,27 +285,6 @@ const curves = [
     new THREE.Vector3(0, 0, 0)
   ),
 ]
-
-// Right Winger Curve
-const rwPoints = curves[0].getPoints(50) // Generate 50 points along the curve
-const rwGeometry = new THREE.BufferGeometry().setFromPoints(rwPoints)
-const rwMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
-const rwCurveObject = new THREE.Line(rwGeometry, rwMaterial)
-scene.add(rwCurveObject)
-
-// Center Forward Curve
-const cfPoints = curves[1].getPoints(50)
-const cfGeometry = new THREE.BufferGeometry().setFromPoints(cfPoints)
-const cfMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 }) // Green for visibility
-const cfCurveObject = new THREE.Line(cfGeometry, cfMaterial)
-scene.add(cfCurveObject)
-
-// Left Winger Curve
-const lwPoints = curves[2].getPoints(50)
-const lwGeometry = new THREE.BufferGeometry().setFromPoints(lwPoints)
-const lwMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff }) // Blue for visibility
-const lwCurveObject = new THREE.Line(lwGeometry, lwMaterial)
-scene.add(lwCurveObject)
 
 // TODO: Camera Settings
 // Set the camera following the ball here
