@@ -377,7 +377,7 @@ function animate() {
   } else {
     t = 0 // Reset t to loop the animation or handle as needed
   }
-
+  
   // TODO: Test for card-ball collision
 
   renderer.render(scene, camera)
