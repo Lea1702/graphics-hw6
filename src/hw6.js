@@ -318,12 +318,33 @@ const handle_keydown = (e) => {
 }
 document.addEventListener('keydown', handle_keydown)
 
+let t = 0; // Parameter that goes from 0 to 1
+const ballSpeed = 0.002; // Speed of the animation, adjust as necessary
+const spinSpeed = 0.07; // Speed of the spin, adjust as necessary
+let totalRotationX = 0 // Total rotation around the x-axis
+
 function animate() {
-  requestAnimationFrame(animate)
+	requestAnimationFrame(animate)
 
-  // TODO: Animation for the ball's position
-  // TODO: Test for card-ball collision
+	// TODO: Animation for the ball's position
+	// Update the ball position using a matrix transformation
+	if (t <= 1) {
+		const point = centerForwardCurve.getPoint(t);
+		const translationMatrix = new THREE.Matrix4().makeTranslation(point.x, point.y, point.z);
+		const rotationMatrix = new THREE.Matrix4().makeRotationX(-totalRotationX) // Incremental rotation
 
-  renderer.render(scene, camera)
+		// Combine translation and rotation
+		ball.matrix.multiplyMatrices(translationMatrix, rotationMatrix)
+
+		// ball.matrix.copy(translationMatrix); // Apply the new translation matrix to the ball
+		t += ballSpeed;
+		totalRotationX += spinSpeed // Incremental rotation around the z-axis
+	} else {
+		t = 0; // Reset t to loop the animation or handle as needed
+	}
+
+	// TODO: Test for card-ball collision
+
+	renderer.render(scene, camera)
 }
 animate()
