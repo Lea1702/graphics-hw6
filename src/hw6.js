@@ -55,14 +55,12 @@ scene.background = texture
 
 // TODO: Texture Loading
 // We usually do the texture loading before we start everything else, as it might take processing time
-// Load the texture
 const textureLoader = new THREE.TextureLoader()
 const ballTexture = textureLoader.load('src/textures/soccer_ball.jpg')
 const redCardTexture = textureLoader.load('src/textures/red_card.jpg')
 const yellowCardTexture = textureLoader.load('src/textures/yellow_card.jpg')
 
 // TODO: Add Lighting
-// Light sources
 // Ambient Light
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
 scene.add(ambientLight)
@@ -288,6 +286,23 @@ const curves = [
 
 // TODO: Camera Settings
 // Set the camera following the ball here
+function cameraAnimation() {
+  let ballPosition = new THREE.Vector3().setFromMatrixPosition(ball.matrix)
+  let cameraPosition = new THREE.Vector3().setFromMatrixPosition(camera.matrix)
+
+  const cameraYPosition = 25
+  const zOffset = 60
+
+  let cameraPositionMatrix = new THREE.Matrix4().makeTranslation(
+    cameraPosition.x,
+    cameraYPosition,
+    ballPosition.z + zOffset
+  )
+  camera.matrix.copy(cameraPositionMatrix)
+  camera.matrixAutoUpdate = false
+
+  camera.lookAt(ballPosition)
+}
 
 // TODO: Add collectible cards with textures
 class Card {
@@ -299,8 +314,10 @@ class Card {
     this.color = color
   }
 }
+
 let numRedCards = 0
 let numYellowCards = 0
+
 function createCard(curve, t, color) {
   const cardGeometry = new THREE.BoxGeometry(1, 1.5, 0.1)
   const cardMaterial = new THREE.MeshBasicMaterial({
@@ -341,14 +358,12 @@ function calculateFairPlayScore() {
 }
 
 let cards = []
-
-// Example of adding cards to each curve
-cards.push(createCard(curves[0], 0.25, 'red'))
-cards.push(createCard(curves[0], 0.75, 'yellow'))
-cards.push(createCard(curves[1], 0.5, 'red'))
-cards.push(createCard(curves[1], 0.9, 'yellow'))
-cards.push(createCard(curves[2], 0.33, 'yellow'))
+cards.push(createCard(curves[0], 0.75, 'red'))
+cards.push(createCard(curves[0], 0.25, 'yellow'))
+cards.push(createCard(curves[1], 0.9, 'red'))
+cards.push(createCard(curves[1], 0.5, 'yellow'))
 cards.push(createCard(curves[2], 0.66, 'red'))
+cards.push(createCard(curves[2], 0.33, 'yellow'))
 
 // TODO: Add keyboard event
 // We wrote some of the function for you
@@ -367,7 +382,9 @@ function findClosestTForZ(curve, zCoord, samples = 100) {
   return closestT
 }
 
-let currentCurveIndex = 0 // Start with the first curve
+// Start with the right curve
+let currentCurveIndex = 0
+
 const handle_keydown = (e) => {
   if (e.code == 'ArrowLeft' || e.code == 'ArrowRight') {
     const oldCurve = curves[currentCurveIndex]
@@ -389,18 +406,18 @@ const handle_keydown = (e) => {
 }
 document.addEventListener('keydown', handle_keydown)
 
-let t = 0 // Parameter that goes from 0 to 1
-const ballSpeed = 0.002 // Speed of the animation, adjust as necessary
-const spinSpeed = 0.08 // Speed of the spin, adjust as necessary
-let totalRotationX = 0 // Total rotation around the x-axis
+// Animate
+let t = 0 
+const ballSpeed = 0.004
+const spinSpeed = 0.08
+let totalRotationX = 0
 
 function animate() {
   requestAnimationFrame(animate)
 
   // TODO: Animation for the ball's position
-  // Update the ball position using a matrix transformation
   if (t <= 1) {
-    const curve = curves[currentCurveIndex] // Get the current curve
+    const curve = curves[currentCurveIndex]
 
     const point = curve.getPoint(t)
     const translationMatrix = new THREE.Matrix4().makeTranslation(
@@ -408,48 +425,27 @@ function animate() {
       point.y,
       point.z
     )
-    const rotationMatrix = new THREE.Matrix4().makeRotationX(-totalRotationX) // Incremental rotation
+    const rotationMatrix = new THREE.Matrix4().makeRotationX(-totalRotationX)
 
     // Combine translation and rotation
     ball.matrix.multiplyMatrices(translationMatrix, rotationMatrix)
     t += ballSpeed
-    totalRotationX += spinSpeed // Incremental rotation around the z-axis
-  } else {
-    // When the ball reaches the end of the curve
+    totalRotationX += spinSpeed 
+  } else { // When the ball reaches the end of the curve
     let score = calculateFairPlayScore()
     alert('Game Over! Your Fair Play Score is: ' + score.toFixed(2))
-    // Reset all cards
-    cards.forEach((card) => {
-      card.object3D.visible = true // Make the card visible again
-      card.hit = false // Reset the hit status
-    })
-
-    // Reset score counters
-    numRedCards = 0
+    
+	// Reset
+    t = 0
+	numRedCards = 0
     numYellowCards = 0
-
-    t = 0 // Optionally reset or stop the animation
+    cards.forEach((card) => {
+      card.object3D.visible = true 
+      card.hit = false
+    })
   }
 
-  // Animation for the camera
-  // Update camera position based on the ball's position
-  let ballPosition = new THREE.Vector3().setFromMatrixPosition(ball.matrix)
-  let cameraPosition = new THREE.Vector3().setFromMatrixPosition(camera.matrix)
-
-  // Define a fixed y-offset and z-offset for the camera
-  const cameraYPosition = 25
-  const zOffset = 60 // Camera stays behind the ball by 10 units
-
-  // Construct a new matrix for the camera's position
-  let cameraPositionMatrix = new THREE.Matrix4().makeTranslation(
-    cameraPosition.x,
-    cameraYPosition,
-    ballPosition.z + zOffset
-  )
-  camera.matrix.copy(cameraPositionMatrix) // Apply the new matrix to the camera
-  camera.matrixAutoUpdate = false // Disable auto updates to use manual matrix handling
-
-  camera.lookAt(ballPosition) // Ensure camera looks at the ball
+  cameraAnimation()
 
   // TODO: Test for card-ball collision
   checkCardCollisions()
