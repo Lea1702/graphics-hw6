@@ -1,27 +1,48 @@
 // Scene Declartion
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+const scene = new THREE.Scene()
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+)
 // This defines the initial distance of the camera, you may ignore this as the camera is expected to be dynamic
-camera.applyMatrix4(new THREE.Matrix4().makeTranslation(-5, 3, 110));
+camera.applyMatrix4(new THREE.Matrix4().makeTranslation(-5, 3, 110))
 camera.lookAt(0, -4, 1)
 
-
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-document.body.appendChild( renderer.domElement );
-
+const renderer = new THREE.WebGLRenderer()
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
 
 // helper function for later on
-function degrees_to_radians(degrees)
-{
-  var pi = Math.PI;
-  return degrees * (pi/180);
+function degrees_to_radians(degrees) {
+  var pi = Math.PI
+  return degrees * (pi / 180)
 }
 
+// Rotation matrices
+const translateAndRotate = (object, tx, ty, tz, rx, ry, rz) => {
+  const translationMatrix = new THREE.Matrix4().makeTranslation(tx, ty, tz)
+  const rotationXMatrix = new THREE.Matrix4().makeRotationX(rx)
+  const rotationYMatrix = new THREE.Matrix4().makeRotationY(ry)
+  const rotationZMatrix = new THREE.Matrix4().makeRotationZ(rz)
+
+  object.matrix.multiplyMatrices(translationMatrix, rotationXMatrix)
+  object.matrix.multiply(rotationYMatrix)
+  object.matrix.multiply(rotationZMatrix)
+  object.matrixAutoUpdate = false
+}
+
+// Dimentions
+const postRadius = 0.5
+const crossbarWidth = 50
+const postHeight = crossbarWidth / 3
+const ballDiameter = postHeight / 8
+const ballRadius = ballDiameter / 2
 
 // Here we load the cubemap and pitch images, you may change it
 
-const loader = new THREE.CubeTextureLoader();
+const loader = new THREE.CubeTextureLoader()
 const texture = loader.load([
   'src/pitch/right.jpg',
   'src/pitch/left.jpg',
@@ -29,63 +50,232 @@ const texture = loader.load([
   'src/pitch/bottom.jpg',
   'src/pitch/front.jpg',
   'src/pitch/back.jpg',
-]);
-scene.background = texture;
-
+])
+scene.background = texture
 
 // TODO: Texture Loading
 // We usually do the texture loading before we start everything else, as it might take processing time
 
-
-
 // TODO: Add Lighting
+// Light sources
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.7)
+scene.add(ambientLight)
 
-
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
+directionalLight.matrix.makeTranslation(0, 1, 1)
+scene.add(directionalLight)
 // TODO: Goal
 // You should copy-paste the goal from the previous exercise here
+// Goal
+const postMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff })
 
+const frontLeftPost = new THREE.Mesh(
+  new THREE.CylinderGeometry(postRadius, postRadius, postHeight, 32),
+  postMaterial
+)
+translateAndRotate(
+  frontLeftPost,
+  -crossbarWidth / 2,
+  postHeight / 2,
+  0,
+  0,
+  0,
+  0
+)
+
+scene.add(frontLeftPost)
+
+const frontRightPost = new THREE.Mesh(
+  new THREE.CylinderGeometry(postRadius, postRadius, postHeight, 32),
+  postMaterial
+)
+translateAndRotate(
+  frontRightPost,
+  crossbarWidth / 2,
+  postHeight / 2,
+  0,
+  0,
+  0,
+  0
+)
+
+scene.add(frontRightPost)
+
+const crossbar = new THREE.Mesh(
+  new THREE.CylinderGeometry(postRadius, postRadius, crossbarWidth, 32),
+  postMaterial
+)
+translateAndRotate(crossbar, 0, postHeight, 0, 0, 0, Math.PI / 2)
+
+scene.add(crossbar)
+
+const backSupportLength = postHeight / Math.cos(Math.PI / 4)
+const backSupportMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff })
+const xOffset = postHeight / Math.tan(Math.PI / 4) / 2
+
+const leftBackSupport = new THREE.Mesh(
+  new THREE.CylinderGeometry(postRadius, postRadius, backSupportLength, 32),
+  backSupportMaterial
+)
+translateAndRotate(
+  leftBackSupport,
+  -crossbarWidth / 2,
+  postHeight / 2,
+  -xOffset,
+  Math.PI / 4,
+  Math.PI / 2,
+  0
+)
+
+scene.add(leftBackSupport)
+
+const rightBackSupport = new THREE.Mesh(
+  new THREE.CylinderGeometry(postRadius, postRadius, backSupportLength, 32),
+  backSupportMaterial
+)
+translateAndRotate(
+  rightBackSupport,
+  crossbarWidth / 2,
+  postHeight / 2,
+  -xOffset,
+  Math.PI / 4,
+  Math.PI / 2,
+  0
+)
+
+scene.add(rightBackSupport)
+
+const torusMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff })
+const torusRadius = 0.1
+const tubeRadius = 0.05
+const radialSegments = 16
+const tubularSegments = 100
+
+const torusGeometry = new THREE.TorusGeometry(
+  torusRadius,
+  tubeRadius,
+  radialSegments,
+  tubularSegments
+)
+const frontLeftTorus = new THREE.Mesh(torusGeometry, torusMaterial)
+translateAndRotate(frontLeftTorus, -crossbarWidth / 2, 0, 0, Math.PI / 2, 0, 0)
+
+scene.add(frontLeftTorus)
+
+const frontRightTorus = new THREE.Mesh(torusGeometry, torusMaterial)
+translateAndRotate(frontRightTorus, crossbarWidth / 2, 0, 0, Math.PI / 2, 0, 0)
+
+scene.add(frontRightTorus)
+
+const backSupportTorusGeometry = new THREE.TorusGeometry(
+  torusRadius,
+  tubeRadius,
+  radialSegments,
+  tubularSegments
+)
+const leftBackSupportTopTorus = new THREE.Mesh(
+  backSupportTorusGeometry,
+  torusMaterial
+)
+translateAndRotate(
+  leftBackSupportTopTorus,
+  -crossbarWidth / 2,
+  0,
+  -backSupportLength * Math.sin(Math.PI / 4),
+  Math.PI / 2,
+  0,
+  0
+)
+
+scene.add(leftBackSupportTopTorus)
+
+const rightBackSupportTopTorus = new THREE.Mesh(
+  backSupportTorusGeometry,
+  torusMaterial
+)
+
+translateAndRotate(
+  rightBackSupportTopTorus,
+  crossbarWidth / 2,
+  0,
+  -backSupportLength * Math.sin(Math.PI / 4),
+  Math.PI / 2,
+  0,
+  0
+)
+
+scene.add(rightBackSupportTopTorus)
+
+const netMaterial = new THREE.MeshPhongMaterial({
+  color: '#e9e9e9',
+  side: THREE.DoubleSide,
+})
+
+const backNetGeometry = new THREE.PlaneGeometry(
+  crossbarWidth,
+  postHeight + xOffset * 0.9
+)
+const backNet = new THREE.Mesh(backNetGeometry, netMaterial)
+translateAndRotate(backNet, 0, postHeight / 2, -xOffset, Math.PI / 4, 0, 0)
+
+scene.add(backNet)
+
+function createTriangleGeometry(width, height) {
+  const geometry = new THREE.BufferGeometry()
+  const vertices = new Float32Array([0, 0, 0, width, 0, 0, 0, height, 0])
+  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
+  geometry.computeVertexNormals()
+  return geometry
+}
+
+const leftSideNetGeometry = createTriangleGeometry(postHeight, postHeight)
+const leftSideNet = new THREE.Mesh(leftSideNetGeometry, netMaterial)
+translateAndRotate(leftSideNet, -crossbarWidth / 2, 0, 0, 0, Math.PI / 2, 0)
+scene.add(leftSideNet)
+
+const rightSideNetGeometry = createTriangleGeometry(postHeight, postHeight)
+const rightSideNet = new THREE.Mesh(rightSideNetGeometry, netMaterial)
+translateAndRotate(rightSideNet, crossbarWidth / 2, 0, 0, 0, Math.PI / 2, 0)
+rightSideNet.scale.x = -1
+scene.add(rightSideNet)
 
 // TODO: Ball
 // You should add the ball with the soccer.jpg texture here
 
+// Ball
+const ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32)
+const ballMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 })
+const ball = new THREE.Mesh(ballGeometry, ballMaterial)
+ball.matrix.makeTranslation(0, ballRadius, 1.5)
+ball.matrixAutoUpdate = false
+
+scene.add(ball)
 
 // TODO: Bezier Curves
-
 
 // TODO: Camera Settings
 // Set the camera following the ball here
 
-
 // TODO: Add collectible cards with textures
-
-
-
-
 
 // TODO: Add keyboard event
 // We wrote some of the function for you
 const handle_keydown = (e) => {
-	if(e.code == 'ArrowLeft'){
-		// TODO
-	} else if (e.code == 'ArrowRight'){
-		// TODO
-	}
+  if (e.code == 'ArrowLeft') {
+    // TODO
+  } else if (e.code == 'ArrowRight') {
+    // TODO
+  }
 }
-document.addEventListener('keydown', handle_keydown);
-
-
+document.addEventListener('keydown', handle_keydown)
 
 function animate() {
+  requestAnimationFrame(animate)
 
-	requestAnimationFrame( animate );
+  // TODO: Animation for the ball's position
 
-	// TODO: Animation for the ball's position
+  // TODO: Test for card-ball collision
 
-
-	// TODO: Test for card-ball collision
-
-	
-	renderer.render( scene, camera );
-
+  renderer.render(scene, camera)
 }
 animate()
