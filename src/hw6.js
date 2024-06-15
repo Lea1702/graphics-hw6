@@ -264,43 +264,44 @@ ball.matrixAutoUpdate = false
 scene.add(ball)
 
 // TODO: Bezier Curves
-const rightWingerCurve = new THREE.QuadraticBezierCurve3(
-  new THREE.Vector3(0, 0, 100), // Start point
-  new THREE.Vector3(50, 0, 50), // Control point
-  new THREE.Vector3(0, 0, 0) // End point
-)
-const centerForwardCurve = new THREE.QuadraticBezierCurve3(
-  new THREE.Vector3(0, 0, 100), // Start
-  new THREE.Vector3(0, 50, 50), // Control point
-  new THREE.Vector3(0, 0, 0) // End
-)
+const curves = [
+  new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(0, 0, 100),
+    new THREE.Vector3(50, 0, 50),
+    new THREE.Vector3(0, 0, 0)
+  ),
+  new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(0, 0, 100),
+    new THREE.Vector3(0, 50, 50),
+    new THREE.Vector3(0, 0, 0)
+  ),
+  new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(0, 0, 100),
+    new THREE.Vector3(-50, 0, 50),
+    new THREE.Vector3(0, 0, 0)
+  ),
+]
 
-const leftWingerCurve = new THREE.QuadraticBezierCurve3(
-  new THREE.Vector3(0, 0, 100), // Start
-  new THREE.Vector3(-50, 0, 50), // Control point
-  new THREE.Vector3(0, 0, 0) // End
-)
+// Right Winger Curve
+const rwPoints = curves[0].getPoints(50) // Generate 50 points along the curve
+const rwGeometry = new THREE.BufferGeometry().setFromPoints(rwPoints)
+const rwMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
+const rwCurveObject = new THREE.Line(rwGeometry, rwMaterial)
+scene.add(rwCurveObject)
 
 // Center Forward Curve
-const cfPoints = centerForwardCurve.getPoints(50)
+const cfPoints = curves[1].getPoints(50)
 const cfGeometry = new THREE.BufferGeometry().setFromPoints(cfPoints)
 const cfMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 }) // Green for visibility
 const cfCurveObject = new THREE.Line(cfGeometry, cfMaterial)
 scene.add(cfCurveObject)
 
 // Left Winger Curve
-const lwPoints = leftWingerCurve.getPoints(50)
+const lwPoints = curves[2].getPoints(50)
 const lwGeometry = new THREE.BufferGeometry().setFromPoints(lwPoints)
 const lwMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff }) // Blue for visibility
 const lwCurveObject = new THREE.Line(lwGeometry, lwMaterial)
 scene.add(lwCurveObject)
-
-// Right Winger Curve
-const rwPoints = rightWingerCurve.getPoints(50) // Generate 50 points along the curve
-const rwGeometry = new THREE.BufferGeometry().setFromPoints(rwPoints)
-const rwMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
-const rwCurveObject = new THREE.Line(rwGeometry, rwMaterial)
-scene.add(rwCurveObject)
 
 // TODO: Camera Settings
 // Set the camera following the ball here
@@ -309,42 +310,76 @@ scene.add(rwCurveObject)
 
 // TODO: Add keyboard event
 // We wrote some of the function for you
+function findClosestTForZ(curve, zCoord, samples = 100) {
+  let closestT = 0
+  let minDistance = Infinity
+  for (let i = 0; i <= samples; i++) {
+    let t = i / samples
+    let point = curve.getPoint(t)
+    let distance = Math.abs(point.z - zCoord)
+    if (distance < minDistance) {
+      minDistance = distance
+      closestT = t
+    }
+  }
+  return closestT
+}
+
+let currentCurveIndex = 0 // Start with the first curve
 const handle_keydown = (e) => {
-  if (e.code == 'ArrowLeft') {
-    // TODO
-  } else if (e.code == 'ArrowRight') {
-    // TODO
+  if (e.code == 'ArrowLeft' || e.code == 'ArrowRight') {
+    const oldCurve = curves[currentCurveIndex]
+    const oldPosition = oldCurve.getPoint(t)
+
+    // Update the curve index
+    if (e.code == 'ArrowLeft') {
+      currentCurveIndex++
+      if (currentCurveIndex >= curves.length) currentCurveIndex = 0
+    } else if (e.code == 'ArrowRight') {
+      currentCurveIndex--
+      if (currentCurveIndex < 0) currentCurveIndex = curves.length - 1
+    }
+
+    // Find the closest t on the new curve that matches the current z position
+    const newCurve = curves[currentCurveIndex]
+    t = findClosestTForZ(newCurve, oldPosition.z)
   }
 }
 document.addEventListener('keydown', handle_keydown)
 
-let t = 0; // Parameter that goes from 0 to 1
-const ballSpeed = 0.002; // Speed of the animation, adjust as necessary
-const spinSpeed = 0.07; // Speed of the spin, adjust as necessary
+let t = 0 // Parameter that goes from 0 to 1
+const ballSpeed = 0.002 // Speed of the animation, adjust as necessary
+const spinSpeed = 0.07 // Speed of the spin, adjust as necessary
 let totalRotationX = 0 // Total rotation around the x-axis
 
 function animate() {
-	requestAnimationFrame(animate)
+  requestAnimationFrame(animate)
 
-	// TODO: Animation for the ball's position
-	// Update the ball position using a matrix transformation
-	if (t <= 1) {
-		const point = centerForwardCurve.getPoint(t);
-		const translationMatrix = new THREE.Matrix4().makeTranslation(point.x, point.y, point.z);
-		const rotationMatrix = new THREE.Matrix4().makeRotationX(-totalRotationX) // Incremental rotation
+  // TODO: Animation for the ball's position
+  // Update the ball position using a matrix transformation
+  if (t <= 1) {
+    const curve = curves[currentCurveIndex] // Get the current curve
 
-		// Combine translation and rotation
-		ball.matrix.multiplyMatrices(translationMatrix, rotationMatrix)
+    const point = curve.getPoint(t)
+    const translationMatrix = new THREE.Matrix4().makeTranslation(
+      point.x,
+      point.y,
+      point.z
+    )
+    const rotationMatrix = new THREE.Matrix4().makeRotationX(-totalRotationX) // Incremental rotation
 
-		// ball.matrix.copy(translationMatrix); // Apply the new translation matrix to the ball
-		t += ballSpeed;
-		totalRotationX += spinSpeed // Incremental rotation around the z-axis
-	} else {
-		t = 0; // Reset t to loop the animation or handle as needed
-	}
+    // Combine translation and rotation
+    ball.matrix.multiplyMatrices(translationMatrix, rotationMatrix)
 
-	// TODO: Test for card-ball collision
+    // ball.matrix.copy(translationMatrix); // Apply the new translation matrix to the ball
+    t += ballSpeed
+    totalRotationX += spinSpeed // Incremental rotation around the z-axis
+  } else {
+    t = 0 // Reset t to loop the animation or handle as needed
+  }
+  
+  // TODO: Test for card-ball collision
 
-	renderer.render(scene, camera)
+  renderer.render(scene, camera)
 }
 animate()
