@@ -56,24 +56,26 @@ scene.background = texture
 // TODO: Texture Loading
 // We usually do the texture loading before we start everything else, as it might take processing time
 // Load the texture
-const textureLoader = new THREE.TextureLoader();
-const ballTexture = textureLoader.load('src/textures/soccer_ball.jpg');
+const textureLoader = new THREE.TextureLoader()
+const ballTexture = textureLoader.load('src/textures/soccer_ball.jpg')
 
 // TODO: Add Lighting
 // Light sources
 // Ambient Light
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-scene.add(ambientLight);
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+scene.add(ambientLight)
 
 // Directional Light at the start of the routes
-const directionalLightStart = new THREE.DirectionalLight(0xffffff, 0.5);
-directionalLightStart.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 10, 100));
-scene.add(directionalLightStart);
+const directionalLightStart = new THREE.DirectionalLight(0xffffff, 0.5)
+directionalLightStart.applyMatrix4(
+  new THREE.Matrix4().makeTranslation(0, 10, 100)
+)
+scene.add(directionalLightStart)
 
 // Directional Light at the end of the routes
-const directionalLightEnd = new THREE.DirectionalLight(0xffffff, 0.5);
-directionalLightEnd.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 10, 0));
-scene.add(directionalLightEnd);
+const directionalLightEnd = new THREE.DirectionalLight(0xffffff, 0.5)
+directionalLightEnd.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 10, 0))
+scene.add(directionalLightEnd)
 
 // TODO: Goal
 // You should copy-paste the goal from the previous exercise here
@@ -85,13 +87,13 @@ const frontLeftPost = new THREE.Mesh(
   postMaterial
 )
 translateAndRotate(
-	frontLeftPost,
-	-crossbarWidth / 2,
-	postHeight / 2,
-	0,
-	0,
-	0,
-	0
+  frontLeftPost,
+  -crossbarWidth / 2,
+  postHeight / 2,
+  0,
+  0,
+  0,
+  0
 )
 
 scene.add(frontLeftPost)
@@ -101,13 +103,13 @@ const frontRightPost = new THREE.Mesh(
   postMaterial
 )
 translateAndRotate(
-	frontRightPost,
-	crossbarWidth / 2,
-	postHeight / 2,
-	0,
-	0,
-	0,
-	0
+  frontRightPost,
+  crossbarWidth / 2,
+  postHeight / 2,
+  0,
+  0,
+  0,
+  0
 )
 
 scene.add(frontRightPost)
@@ -262,6 +264,43 @@ ball.matrixAutoUpdate = false
 scene.add(ball)
 
 // TODO: Bezier Curves
+const rightWingerCurve = new THREE.QuadraticBezierCurve3(
+  new THREE.Vector3(0, 0, 100), // Start point
+  new THREE.Vector3(50, 0, 50), // Control point
+  new THREE.Vector3(0, 0, 0) // End point
+)
+const centerForwardCurve = new THREE.QuadraticBezierCurve3(
+  new THREE.Vector3(0, 0, 100), // Start
+  new THREE.Vector3(0, 50, 50), // Control point
+  new THREE.Vector3(0, 0, 0) // End
+)
+
+const leftWingerCurve = new THREE.QuadraticBezierCurve3(
+  new THREE.Vector3(0, 0, 100), // Start
+  new THREE.Vector3(-50, 0, 50), // Control point
+  new THREE.Vector3(0, 0, 0) // End
+)
+
+// Center Forward Curve
+const cfPoints = centerForwardCurve.getPoints(50)
+const cfGeometry = new THREE.BufferGeometry().setFromPoints(cfPoints)
+const cfMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 }) // Green for visibility
+const cfCurveObject = new THREE.Line(cfGeometry, cfMaterial)
+scene.add(cfCurveObject)
+
+// Left Winger Curve
+const lwPoints = leftWingerCurve.getPoints(50)
+const lwGeometry = new THREE.BufferGeometry().setFromPoints(lwPoints)
+const lwMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff }) // Blue for visibility
+const lwCurveObject = new THREE.Line(lwGeometry, lwMaterial)
+scene.add(lwCurveObject)
+
+// Right Winger Curve
+const rwPoints = rightWingerCurve.getPoints(50) // Generate 50 points along the curve
+const rwGeometry = new THREE.BufferGeometry().setFromPoints(rwPoints)
+const rwMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 })
+const rwCurveObject = new THREE.Line(rwGeometry, rwMaterial)
+scene.add(rwCurveObject)
 
 // TODO: Camera Settings
 // Set the camera following the ball here
@@ -283,7 +322,6 @@ function animate() {
   requestAnimationFrame(animate)
 
   // TODO: Animation for the ball's position
-
   // TODO: Test for card-ball collision
 
   renderer.render(scene, camera)
