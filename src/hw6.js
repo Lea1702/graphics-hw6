@@ -38,7 +38,7 @@ const postRadius = 0.5
 const crossbarWidth = 50
 const postHeight = crossbarWidth / 3
 const ballDiameter = postHeight / 8
-const ballRadius = ballDiameter / 4
+const ballRadius = ballDiameter / 2
 
 // Here we load the cubemap and pitch images, you may change it
 
@@ -348,8 +348,8 @@ const handle_keydown = (e) => {
 document.addEventListener('keydown', handle_keydown)
 
 let t = 0 // Parameter that goes from 0 to 1
-const ballSpeed = 0.002 // Speed of the animation, adjust as necessary
-const spinSpeed = 0.07 // Speed of the spin, adjust as necessary
+const ballSpeed = 0.004 // Speed of the animation, adjust as necessary
+const spinSpeed = 0.08 // Speed of the spin, adjust as necessary
 let totalRotationX = 0 // Total rotation around the x-axis
 
 function animate() {
@@ -378,6 +378,22 @@ function animate() {
     t = 0 // Reset t to loop the animation or handle as needed
   }
   
+	// Animation for the camera
+	// Update camera position based on the ball's position
+    let ballPosition = new THREE.Vector3().setFromMatrixPosition(ball.matrix);
+	let cameraPosition = new THREE.Vector3().setFromMatrixPosition(camera.matrix);
+    
+    // Define a fixed y-offset and z-offset for the camera
+	const cameraYPosition = 25;
+    const zOffset = 60; // Camera stays behind the ball by 10 units
+
+    // Construct a new matrix for the camera's position
+    let cameraPositionMatrix = new THREE.Matrix4().makeTranslation(cameraPosition.x, cameraYPosition, ballPosition.z + zOffset);
+    camera.matrix.copy(cameraPositionMatrix); // Apply the new matrix to the camera
+    camera.matrixAutoUpdate = false; // Disable auto updates to use manual matrix handling
+
+    camera.lookAt(ballPosition); // Ensure camera looks at the ball
+
   // TODO: Test for card-ball collision
 
   renderer.render(scene, camera)
