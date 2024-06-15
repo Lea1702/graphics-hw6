@@ -378,6 +378,20 @@ function animate() {
     t = 0 // Reset t to loop the animation or handle as needed
   }
   
+	// Animation for the camera
+	// Update camera position based on the ball's position
+    let ballPosition = new THREE.Vector3().setFromMatrixPosition(ball.matrix);
+    
+    // Define a fixed y-offset and z-offset for the camera
+    const zOffset = 40; // Camera stays behind the ball by 10 units
+
+    // Construct a new matrix for the camera's position
+    let cameraPositionMatrix = new THREE.Matrix4().makeTranslation(ballPosition.x, ballPosition.y, ballPosition.z + zOffset);
+    camera.matrix.copy(cameraPositionMatrix); // Apply the new matrix to the camera
+    camera.matrixAutoUpdate = false; // Disable auto updates to use manual matrix handling
+
+    camera.lookAt(ballPosition); // Ensure camera looks at the ball
+
   // TODO: Test for card-ball collision
 
   renderer.render(scene, camera)
