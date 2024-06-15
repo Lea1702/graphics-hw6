@@ -59,15 +59,21 @@ scene.background = texture
 const textureLoader = new THREE.TextureLoader();
 const ballTexture = textureLoader.load('src/textures/soccer_ball.jpg');
 
-
 // TODO: Add Lighting
 // Light sources
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.7)
-scene.add(ambientLight)
+// Ambient Light
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
-directionalLight.matrix.makeTranslation(0, 1, 1)
-scene.add(directionalLight)
+// Directional Light at the start of the routes
+const directionalLightStart = new THREE.DirectionalLight(0xffffff, 0.5);
+directionalLightStart.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 10, 100));
+scene.add(directionalLightStart);
+
+// Directional Light at the end of the routes
+const directionalLightEnd = new THREE.DirectionalLight(0xffffff, 0.5);
+directionalLightEnd.applyMatrix4(new THREE.Matrix4().makeTranslation(0, 10, 0));
+scene.add(directionalLightEnd);
 
 // TODO: Goal
 // You should copy-paste the goal from the previous exercise here
@@ -250,7 +256,7 @@ scene.add(rightSideNet)
 const ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32)
 const ballMaterial = new THREE.MeshPhongMaterial({ map: ballTexture })
 const ball = new THREE.Mesh(ballGeometry, ballMaterial)
-ball.matrix.makeTranslation(0, ballRadius, 100)
+ball.applyMatrix4(new THREE.Matrix4().makeTranslation(0, ballRadius, 100))
 ball.matrixAutoUpdate = false
 
 scene.add(ball)
